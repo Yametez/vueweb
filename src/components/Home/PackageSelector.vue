@@ -8,11 +8,9 @@
         <v-card @click="selectPackage(pkg)">
           <v-card-title>{{ pkg.name }}</v-card-title>
           <v-card-subtitle>
-
-            <v-icon>{{ getIcon(pkg.description) }}</v-icon
-            >{{ getDescription(pkg.description) }}</v-card-subtitle
-          >
-          
+            <v-icon>{{ getIcon(pkg.description) }}</v-icon>
+            {{ getDescription(pkg.description) }}
+          </v-card-subtitle>
         </v-card>
       </v-col>
     </v-row>
@@ -27,7 +25,8 @@ export default {
     return {
       packages: [],
       selectedPackages: [],
-      IP:"https://ab66-2001-fb1-3a-7e10-6138-b2b0-a0f0-5d9a.ngrok-free.app/"
+      // IP: "http://localhost:5001",
+      IP:"https://3334-49-49-216-99.ngrok-free.app"
     };
   },
   mounted() {
@@ -36,12 +35,10 @@ export default {
   methods: {
     async fetchPackages() {
       try {
-        // const response = await axios.get("https://e471-58-8-14-234.ngrok-free.app/package/get");
-        axios.get(this.IP+"/package/get").then(response => {
+        axios.get(this.IP + "/package/get").then(response => {
           this.packages = response.data;
-          console.log("packages",response);
-        })
-        
+          console.log("packages", response);
+        });
       } catch (error) {
         console.error("Error fetching packages:", error);
       }

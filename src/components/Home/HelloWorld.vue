@@ -76,9 +76,9 @@ export default {
       isRegistering: false,
       packages: [],
       user: null,
-            IP: "https://ab66-2001-fb1-3a-7e10-6138-b2b0-a0f0-5d9a.ngrok-free.app/",
-      // IP: "http://localhost:5000"
-    };
+      IP:"https://3334-49-49-216-99.ngrok-free.app",
+      // IP: "http://localhost:5001"
+    };          
   },
   methods: {
     async signInWithGoogle() {
@@ -132,7 +132,7 @@ export default {
           this.fetchPackages();
 
           // Redirect to PackageSelector.vue after successful login
-          this.$router.push('/PackageSelector');
+          this.$router.push('/edit_admin');
         } else {
           this.showSnackbar('Invalid username or password.');
         }
@@ -179,7 +179,7 @@ export default {
           this.fetchPackages();
 
           // Redirect to PackageSelector.vue after successful registration
-          this.$router.push('/PackageSelector');
+          this.$router.push('/');
         } else {
           this.showSnackbar('Failed to register.');
         }
