@@ -1,15 +1,30 @@
 <template>
-  <v-container>
+  <v-container >
+    <!-- Navbar -->
+    <v-app-bar app color="white">
+      <v-toolbar-title>GETPACKAGE</v-toolbar-title>
+      <v-spacer></v-spacer>
+      <v-btn @click="goToHomePage" text>
+        <v-icon>mdi-home</v-icon>
+      </v-btn>
+      <v-btn @click="logout" text>
+        <v-icon>mdi-logout</v-icon>
+      </v-btn>
+    </v-app-bar>
+
+    <!-- Content -->
     <v-row>
       <v-col cols="12">
-        <h1>Select a Package</h1>
+        <h1>Please Select Package</h1>
       </v-col>
       <v-col cols="12" md="4" v-for="(pkg, index) in packages" :key="index">
         <v-card @click="selectPackage(pkg)">
           <v-card-title>{{ pkg.name }}</v-card-title>
           <v-card-subtitle>
-            <v-icon>{{ getIcon(pkg.description) }}</v-icon>
-            {{ getDescription(pkg.description) }}
+            <div v-for="(line, lineIndex) in getDescription(pkg.description)" :key="lineIndex" class="d-flex align-center mb-2">
+              <v-icon class="custom-icon mr-2">{{ getIcon(pkg.description)[lineIndex] }}</v-icon>
+              {{ line }}
+            </div>
           </v-card-subtitle>
         </v-card>
       </v-col>
@@ -25,8 +40,7 @@ export default {
     return {
       packages: [],
       selectedPackages: [],
-      // IP: "http://localhost:5001",
-      IP:"https://3334-49-49-216-99.ngrok-free.app"
+      IP: "https://06a6-58-8-14-234.ngrok-free.app"
     };
   },
   mounted() {
@@ -35,10 +49,11 @@ export default {
   methods: {
     async fetchPackages() {
       try {
-        axios.get(this.IP + "/package/get").then(response => {
-          this.packages = response.data;
-          console.log("packages", response);
-        });
+        const response = await axios.get(this.IP + "/package/get");
+        this.packages = response.data;
+        this.packages.sort((a, b) => a.id - b.id);
+
+        console.log("packages", response);
       } catch (error) {
         console.error("Error fetching packages:", error);
       }
@@ -53,23 +68,31 @@ export default {
     getDescription(description) {
       try {
         const descObj = JSON.parse(description); // แปลง JSON เป็น Object
-        return descObj.map((item) => item.title).join(", "); // นำข้อมูลมาแสดงเป็น string ตามต้องการ
+        return descObj.map((item) => item.title); // นำข้อมูลมาแสดงเป็น array ของ titles
       } catch (error) {
         console.error("Error parsing description:", error);
-        return "Description not available";
+        return ["Description not available"];
       }
     },
     getIcon(description) {
       try {
-        console.log(description);
         const descObj = JSON.parse(description); // แปลง JSON เป็น Object
-        return descObj.map((item) => item.icon).join(", "); // นำข้อมูล icon มาแสดงเป็น string ตามต้องการ
+        return descObj.map((item) => item.icon); // นำข้อมูล icon มาแสดงเป็น array ของ icons
       } catch (error) {
         console.error("Error parsing icon:", error);
-        return ""; 
+        return [];
       }
     },
-  },
+    goToHomePage() {
+      this.$router.push({ name: 'Home' }); // เปลี่ยนเส้นทางไปยังหน้า Home
+    },
+    logout() {
+      // Implement logout logic here
+      console.log('Logout');
+      // เช่น: this.$firebase.auth().signOut();
+      this.$router.push('/'); // เปลี่ยนเส้นทางไปยังหน้า root (/) หลังออกจากระบบ
+    }
+  }
 };
 </script>
 
@@ -77,5 +100,11 @@ export default {
 v-card {
   cursor: pointer;
   margin-bottom: 16px;
+}
+.custom-icon {
+  color: #FFFFFF;
+  background-color: #1976D2; /* สีฟ้าของ Vuetify primary color */
+  border-radius: 50%;
+  padding: 2px;
 }
 </style>

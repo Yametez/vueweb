@@ -25,6 +25,11 @@ export default new Router({
         path: '/edit_admin',
         name: 'edit_admin',
         component: home.edit_admin
+      },
+      {
+        path: '/edit_users',
+        name: 'edit_users',
+        component: home.edit_users
       }
   ]
 })

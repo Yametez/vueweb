@@ -4,6 +4,7 @@ import vuetify from './plugins/vuetify'
 import route from './route'
 import VueRouter from 'vue-router'
 import axios from "axios";
+import './assets/font.css'
 
 axios.defaults.headers.common['ngrok-skip-browser-warning'] = 'true'
 Vue.config.productionTip = false

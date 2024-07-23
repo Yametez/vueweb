@@ -1,47 +1,144 @@
 <template>
-  <v-card class="pa-5 mx-auto mt-10" max-width="400">
-    <v-overlay :value="loading">
-      <v-progress-circular indeterminate color="primary"></v-progress-circular>
-    </v-overlay>
-    <div v-if="!userData && !loading">
-      <v-card-title class="text-center">{{ isRegistering ? 'Register' : 'Login' }}</v-card-title>
-      <v-form @submit.prevent="checklogin">
-        <v-text-field v-model="username" label="Username" outlined></v-text-field>
-        <v-text-field v-model="password" label="Password" type="password" outlined></v-text-field>
-        <v-text-field v-if="isRegistering" v-model="firstName" label="First Name" outlined></v-text-field>
-        <v-text-field v-if="isRegistering" v-model="lastName" label="Last Name" outlined></v-text-field>
-        <v-text-field v-if="isRegistering" v-model="phone" label="Phone" outlined></v-text-field>
-        <v-text-field v-if="isRegistering" v-model="email" label="Email" outlined></v-text-field>
-        <v-btn type="submit" color="primary" class="mx-auto mt-4" block>
-          {{ isRegistering ? 'Register' : 'Login' }}
-        </v-btn>
-      </v-form>
-      <v-btn @click="toggleRegister" color="primary" dark class="mx-auto mt-4" style="width: 100%;">
-        {{ isRegistering ? 'Switch to Login' : 'Register' }}
-      </v-btn>
-      <v-btn @click="signInWithGoogle" color="white" dark class="mx-auto mt-4" style="width: 100%;">
-        <v-img>
-          <img src="@/assets/search.png" alt="Search Icon" width="24">
-        </v-img>
-      </v-btn>
-    </div>
-    <div v-else>
-      <span v-if="userData.displayName">{{ userData.displayName }}</span>
-      <span v-else>{{ userData.username }}</span>
-      <span class="mr-2"></span>
-      <v-btn @click="signOut" color="red" dark>
-        Sign Out
-      </v-btn>
-    </div>
-    <v-snackbar v-model="snackbar" :timeout="3000" :color="snackbarColor">
-      {{ snackbarMessage }}
-      <template v-slot:action="{ attrs, on }">
-        <v-btn color="white" text v-bind="attrs" v-on="on" @click="snackbar = false">
-          Close
-        </v-btn>
-      </template>
-    </v-snackbar>
-  </v-card>
+  <v-container class="d-flex justify-center align-center fill-height">
+    <v-slide-y-transition>
+      <v-card class="pa-5 elevation-10" max-width="400" color="grey lighten-5">
+        <v-overlay :value="loading" :opacity="0.8">
+          <v-progress-circular
+            indeterminate
+            color="primary"
+            size="64"
+          ></v-progress-circular>
+        </v-overlay>
+
+        <v-card-title class="text-center">
+          {{ isRegistering ? "Register" : "Login" }}
+        </v-card-title>
+
+        <v-card-text>
+          <v-form @submit.prevent="checklogin">
+            <v-text-field
+              v-model="username"
+              label="Username"
+              outlined
+              prepend-icon="mdi-account"
+              dense
+              required
+            ></v-text-field>
+
+            <v-text-field
+              v-model="password"
+              label="Password"
+              type="password"
+              outlined
+              prepend-icon="mdi-lock"
+              dense
+              required
+            ></v-text-field>
+
+            <v-text-field
+              v-if="isRegistering"
+              v-model="firstName"
+              label="First Name"
+              outlined
+              prepend-icon="mdi-account"
+              dense
+              required
+            ></v-text-field>
+
+            <v-text-field
+              v-if="isRegistering"
+              v-model="lastName"
+              label="Last Name"
+              outlined
+              prepend-icon="mdi-account"
+              dense
+              required
+            ></v-text-field>
+
+            <v-text-field
+              v-if="isRegistering"
+              v-model="phone"
+              label="Phone"
+              outlined
+              prepend-icon="mdi-phone"
+              dense
+              required
+            ></v-text-field>
+
+            <v-text-field
+              v-if="isRegistering"
+              v-model="email"
+              label="Email"
+              outlined
+              prepend-icon="mdi-email"
+              dense
+              required
+            ></v-text-field>
+
+            <v-btn
+              type="submit"
+              color="primary"
+              class="mx-auto mt-4 font-weight-bold"
+              block
+              rounded
+              elevation="3"
+            >
+              {{ isRegistering ? "Register" : "Login" }}
+            </v-btn>
+            <v-btn
+              @click="toggleRegister"
+              color="secondary"
+              class="mx-auto mt-4"
+              block
+              rounded
+              outlined
+            >
+              {{ isRegistering ? "Switch to Login" : "Register" }}
+            </v-btn>
+          </v-form>
+
+          <div class="my-4 d-flex align-center">
+    <v-divider></v-divider>
+    <span class="mx-2 grey--text text--darken-1">OR</span>
+    <v-divider></v-divider>
+  </div>
+
+          <v-btn
+            @click="signInWithGoogle"
+            color="white"
+            class="mx-auto mt-4 google-btn"
+            block
+            rounded
+            elevation="2"
+          >
+            <v-img
+              src="@/assets/search.png"
+              max-height="24"
+              max-width="24"
+              contain
+              class="mr-2"
+            ></v-img>
+            Sign in with Google
+          </v-btn>
+        </v-card-text>
+
+        <v-snackbar v-model="snackbar" :timeout="3000" :color="snackbarColor">
+          {{ snackbarMessage }}
+          <template v-slot:action="{ attrs, on }">
+            <v-btn
+              color="white"
+              text
+              v-bind="attrs"
+              v-on="on"
+              @click="snackbar = false"
+            >
+              Close
+            </v-btn>
+          </template>
+        </v-snackbar>
+      </v-card>
+    </v-slide-y-transition>
+  </v-container>
 </template>
 
 <script>
@@ -53,7 +150,7 @@ import { GoogleAuthProvider } from "firebase/auth";
 function getCsrfToken() {
   const csrfToken = document.cookie
     .split("; ")
-    .find(row => row.startsWith("csrf_access_token"))
+    .find((row) => row.startsWith("csrf_access_token"))
     ?.split("=")[1];
 
   return csrfToken;
@@ -71,14 +168,13 @@ export default {
       userData: null,
       snackbar: false,
       snackbarMessage: "",
-      snackbarColor: "success",
+      snackbarColor: "success", 
       loading: false,
       isRegistering: false,
       packages: [],
       user: null,
-      IP:"https://3334-49-49-216-99.ngrok-free.app",
-      // IP: "http://localhost:5001"
-    };          
+      IP: "https://06a6-58-8-14-234.ngrok-free.app",
+    };
   },
   methods: {
     async signInWithGoogle() {
@@ -93,13 +189,15 @@ export default {
         });
 
         this.getUserData(result.user.uid);
-        this.showSnackbar("Login successful.");
+        this.showSnackbar("Login successful.", "success");
         this.fetchPackages();
 
-        // Redirect to PackageSelector.vue after successful login
+        localStorage.setItem("user", JSON.stringify(this.userData));
+
         this.$router.push("/PackageSelector");
       } catch (error) {
         console.error(error);
+        this.showSnackbar("An error occurred during Google login.", "error");
       } finally {
         this.loading = false;
       }
@@ -108,7 +206,7 @@ export default {
       try {
         const snapshot = await db.ref("users/" + uid).once("value");
         this.userData = snapshot.val();
-        this.user = snapshot.val(); // Set user variable upon successful login
+        this.user = snapshot.val();
       } catch (error) {
         console.error("Error fetching user data:", error);
       }
@@ -116,29 +214,45 @@ export default {
     async login() {
       this.loading = true;
 
-      try {
-        const response = await axios.post(this.IP+'/api/login', {
-          userName: this.username,
-          passwd: this.password
-        }, {
-          headers: {
-            'X-CSRFToken': getCsrfToken()
-          }
-        });
+      if (!this.username || !this.password) {
+        this.showSnackbar("Please enter both username and password.", "error");
+        this.loading = false;
+        return;
+      }
 
-        if (response.status === 200) {
-          this.userData = response.data;
-          this.showSnackbar('Login successful.');
+      try {
+        const response = await axios.post(
+          this.IP + "/api/login",
+          {
+            userName: this.username,
+            passwd: this.password,
+          },
+          {
+            headers: {
+              "X-CSRFToken": getCsrfToken(),
+            },
+          }
+        );
+
+        if (response.status === 200 && response.data && response.data.user) {
+          this.userData = response.data.user;
+          const role = response.data.role;
+          this.showSnackbar("Login successful.", "success");
           this.fetchPackages();
 
-          // Redirect to PackageSelector.vue after successful login
-          this.$router.push('/edit_admin');
+          localStorage.setItem("user", JSON.stringify(this.userData));
+
+          if (role === "admin") {
+            this.$router.push("/edit_admin");
+          } else {
+            this.$router.push("/PackageSelector");
+          }
         } else {
-          this.showSnackbar('Invalid username or password.');
+          this.showSnackbar("Invalid username or password.", "error");
         }
       } catch (error) {
-        console.error('Error signing in:', error);
-        this.showSnackbar('Invalid username or password.');
+        console.error(error);
+        this.showSnackbar("An error occurred during login.", "error");
       } finally {
         this.loading = false;
       }
@@ -146,65 +260,64 @@ export default {
     async register() {
       this.loading = true;
 
+      if (
+        !this.username ||
+        !this.password ||
+        !this.firstName ||
+        !this.lastName ||
+        !this.phone ||
+        !this.email
+      ) {
+        this.showSnackbar("Please fill in all required fields.", "error");
+        this.loading = false;
+        return;
+      }
+
       try {
-        const response = await axios.post(this.IP+'/api/register', {
-          username: this.username,
-          email: this.email,
-          passwd: this.password,
-          firstName: this.firstName,
-          lastName: this.lastName,
-          phone: this.phone
-        });
-
-        if (response.status === 200) {
-          await db.ref('users/' + response.data.user_id).set({
-            username: this.username,
-            email: this.email,
+        const response = await axios.post(
+          this.IP + "/api/register",
+          {
+            userName: this.username,
+            passwd: this.password,
             firstName: this.firstName,
             lastName: this.lastName,
             phone: this.phone,
-            record_status: 'N'
-          });
-
-          this.userData = {
-            username: this.username,
             email: this.email,
-            firstName: this.firstName,
-            lastName: this.lastName,
-            phone: this.phone,
-            user_id: response.data.user_id
-          };
-          this.showSnackbar('Registration successful.');
-          this.isRegistering = false;
+          },
+          {
+            headers: {
+              "X-CSRFToken": getCsrfToken(),
+            },
+          }
+        );
+
+        if (response.status === 200 && response.data && response.data.user) {
+          this.userData = response.data.user;
+          this.showSnackbar("Registration successful.", "success");
           this.fetchPackages();
 
-          // Redirect to PackageSelector.vue after successful registration
-          this.$router.push('/');
+          localStorage.setItem("user", JSON.stringify(this.userData));
+          this.$router.push("/PackageSelector");
         } else {
-          this.showSnackbar('Failed to register.');
+          this.showSnackbar("Registration failed.", "error");
         }
       } catch (error) {
-        console.error('Error registering:', error);
-        this.showSnackbar('Failed to register.');
+        console.error(error);
+        this.showSnackbar("An error occurred during registration.", "error");
       } finally {
         this.loading = false;
       }
     },
     async fetchPackages() {
       try {
-        const response = await axios.get(this.IP+"/package/get",);
-        this.packages = response.data;
-        console.log('respone',response)
+        const response = await axios.get(this.IP + "/package/get");
+
+        if (response.status === 200 && response.data) {
+          this.packages = response.data.packages;
+        }
       } catch (error) {
-        console.error("Error fetching packages:", error);
+        console.error(error);
       }
-    },
-    toggleRegister() {
-      this.isRegistering = !this.isRegistering;
-    },
-    showSnackbar(message) {
-      this.snackbarMessage = message;
-      this.snackbar = true;
     },
     checklogin() {
       if (this.isRegistering) {
@@ -213,20 +326,29 @@ export default {
         this.login();
       }
     },
-    async signOut() {
-      // Sign out logic for both Firebase and local auth
-      await auth.signOut();
-      this.userData = null;
-      this.user = null;
-      this.showSnackbar("Sign out successful.");
-      this.$router.push("/login");
+    toggleRegister() {
+      this.isRegistering = !this.isRegistering;
+    },
+    showSnackbar(message, color = "success") {
+      this.snackbarMessage = message;
+      this.snackbarColor = color;
+      this.snackbar = true;
+    },
+  },
+  async mounted() {
+    const user = localStorage.getItem("user");
+    if (user) {
+      this.userData = JSON.parse(user);
     }
+    this.fetchPackages();
   },
 };
 </script>
 
 <style scoped>
-.ml-4 {
-  margin-left: 16px;
+.google-btn {
+  background-color: #fff;
+  color: #757575;
+  border: 1px solid #e0e0e0;
 }
 </style>
