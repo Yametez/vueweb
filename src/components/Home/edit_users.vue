@@ -2,7 +2,7 @@
   <v-app>
     <v-navigation-drawer app v-model="drawer" class="primary darken-1">
       <v-list dense dark>
-        <v-list-item @click="navigateTo('/edit_admin')" link>
+        <v-list-item @click="navigateTo('/edit_package')" link>
           <v-list-item-icon>
             <v-icon>mdi-home</v-icon>
           </v-list-item-icon>
@@ -22,23 +22,39 @@
     </v-navigation-drawer>
 
     <v-app-bar app elevation="4" class="secondary">
-      <v-app-bar-nav-icon @click.stop="drawer = !drawer" color="white"></v-app-bar-nav-icon>
-      <v-toolbar-title class="text-h5 font-weight-bold white--text">Admin Dashboard</v-toolbar-title>
+      <v-app-bar-nav-icon
+        @click.stop="drawer = !drawer"
+        color="white"
+      ></v-app-bar-nav-icon>
+      <v-toolbar-title class="text-h5 font-weight-bold white--text"
+        >Admin Dashboard</v-toolbar-title
+      >
     </v-app-bar>
 
     <v-main class="grey lighten-4">
       <v-container>
-        
+        <v-row>
+          <v-col cols="12" sm="6" md="3">
+            <v-card class="mb-4" color="success">
+              <v-card-text >
+                <div class="text-h4 text-center">{{ users.length }}</div>
+                <div class="text-subtitle-1 text-center">Total Users</div>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
 
         <v-card class="mb-4">
-          <v-card-title class="headline d-flex justify-space-between align-center">
+          <v-card-title
+            class="headline d-flex justify-space-between align-center"
+          >
             <span>User List</span>
             <v-btn color="primary" @click="openAddUserDialog">
               <v-icon left>mdi-plus</v-icon>
               เพิ่ม User/Admin
             </v-btn>
           </v-card-title>
-          
+
           <v-card-text>
             <v-text-field
               v-model="search"
@@ -52,8 +68,7 @@
 
             <v-data-table
               :headers="headers"
-              :items="users"
-              :search="search"
+              :items="filteredUsers"
               :items-per-page="10"
               class="elevation-1"
             >
@@ -86,9 +101,7 @@
                 <v-icon small class="mr-2" @click="editItem(item)">
                   mdi-pencil
                 </v-icon>
-                <v-icon small @click="deleteItem(item)">
-                  mdi-delete
-                </v-icon>
+                <v-icon small @click="deleteItem(item)"> mdi-delete </v-icon>
               </template>
             </v-data-table>
           </v-card-text>
@@ -96,141 +109,151 @@
 
         <!-- Add User Dialog -->
         <v-dialog v-model="dialog" max-width="600px">
-  <v-card>
-    <v-card-title class="headline"> {{ formTitle }} </v-card-title>
-    <v-divider></v-divider>
-    <v-card-text>
-      <v-container fluid>
-        <v-row>
-          <!-- Name Field -->
-          <v-col cols="12" sm="6">
-            <v-text-field
-              v-model="editedItem.userName"
-              label="ชื่อผู้ใช้"
-              outlined
-              dense
-              clearable
-            ></v-text-field>
-          </v-col>
+          <v-card>
+            <v-card-title class="headline"> {{ formTitle }} </v-card-title>
+            <v-divider></v-divider>
+            <v-card-text>
+              <v-container fluid>
+                <v-row>
+                  <!-- Name Field -->
+                  <v-col cols="12" sm="6">
+                    <v-text-field
+                      v-model="editedItem.userName"
+                      label="ชื่อผู้ใช้"
+                      outlined
+                      dense
+                      clearable
+                    ></v-text-field>
+                  </v-col>
 
-          <!-- Email Field -->
-          <v-col cols="12" sm="6">
-            <v-text-field
-              v-model="editedItem.email"
-              label="อีเมล"
-              outlined
-              dense
-              clearable
-            ></v-text-field>
-          </v-col>
+                  <!-- Email Field -->
+                  <v-col cols="12" sm="6">
+                    <v-text-field
+                      v-model="editedItem.email"
+                      label="อีเมล"
+                      outlined
+                      dense
+                      clearable
+                    ></v-text-field>
+                  </v-col>
 
-          <!-- Phone Field -->
-          <v-col cols="12" sm="6">
-            <v-text-field
-              v-model="editedItem.phone"
-              label="โทรศัพท์"
-              outlined
-              dense
-              clearable
-            ></v-text-field>
-          </v-col>
+                  <!-- Phone Field -->
+                  <v-col cols="12" sm="6">
+                    <v-text-field
+                      v-model="editedItem.phone"
+                      label="โทรศัพท์"
+                      outlined
+                      dense
+                      clearable
+                    ></v-text-field>
+                  </v-col>
 
-          <!-- First Name Field -->
-          <v-col cols="12" sm="6">
-            <v-text-field
-              v-model="editedItem.firstName"
-              label="ชื่อจริง"
-              outlined
-              dense
-              clearable
-            ></v-text-field>
-          </v-col>
+                  <!-- First Name Field -->
+                  <v-col cols="12" sm="6">
+                    <v-text-field
+                      v-model="editedItem.firstName"
+                      label="ชื่อจริง"
+                      outlined
+                      dense
+                      clearable
+                    ></v-text-field>
+                  </v-col>
 
-          <!-- Last Name Field -->
-          <v-col cols="12" sm="6">
-            <v-text-field
-              v-model="editedItem.lastName"
-              label="นามสกุล"
-              outlined
-              dense
-              clearable
-            ></v-text-field>
-          </v-col>
+                  <!-- Last Name Field -->
+                  <v-col cols="12" sm="6">
+                    <v-text-field
+                      v-model="editedItem.lastName"
+                      label="นามสกุล"
+                      outlined
+                      dense
+                      clearable
+                    ></v-text-field>
+                  </v-col>
 
-          <!-- Role Field -->
-          <v-col cols="12" sm="6">
-            <v-select
-              v-model="editedItem.role"
-              :items="roles"
-              label="บทบาท"
-              item-text="text"
-              item-value="value"
-              outlined
-              dense
-            ></v-select>
-          </v-col>
-        </v-row>
-      </v-container>
-    </v-card-text>
-    <v-divider></v-divider>
-    <v-card-actions>
-      <v-spacer></v-spacer>
-      <v-btn color="blue darken-1" text @click="close">ยกเลิก</v-btn>
-      <v-btn color="blue darken-1" text @click="save">บันทึก</v-btn>
-    </v-card-actions>
-  </v-card>
-</v-dialog>
-
+                  <!-- Role Field -->
+                  <v-col cols="12" sm="6">
+                    <v-select
+                      v-model="editedItem.role"
+                      :items="roles"
+                      label="บทบาท"
+                      item-text="text"
+                      item-value="value"
+                      outlined
+                      dense
+                    ></v-select>
+                  </v-col>
+                </v-row>
+              </v-container>
+            </v-card-text>
+            <v-divider></v-divider>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="blue darken-1" text @click="close">ยกเลิก</v-btn>
+              <v-btn color="blue darken-1" text @click="save">บันทึก</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
       </v-container>
     </v-main>
   </v-app>
 </template>
 
 <script>
-import axios from 'axios';
+import axios from "axios";
 
 export default {
   data() {
     return {
       drawer: false,
-      search: '',
+      search: "",
       dialog: false,
       headers: [
-        { text: 'ชื่อผู้ใช้', align: 'start', value: 'userName' },
-        { text: 'อีเมล', value: 'email' },
-        { text: 'โทรศัพท์', value: 'phone' },
-        { text: 'ชื่อจริง', value: 'firstName' },
-        { text: 'นามสกุล', value: 'lastName' },
-        { text: 'วันที่สร้าง', value: 'CREATE_DATE' },
-        { text: 'สถานะ', value: 'RECORD_STATUS' },
-        { text: '', value: 'actions', sortable: false }
+        { text: "ชื่อผู้ใช้", align: "start", value: "userName" },
+        { text: "อีเมล", value: "email" },
+        { text: "โทรศัพท์", value: "phone" },
+        { text: "ชื่อจริง", value: "firstName" },
+        { text: "นามสกุล", value: "lastName" },
+        { text: "วันที่สร้าง", value: "CREATE_DATE" },
+        { text: "สถานะ", value: "RECORD_STATUS" },
+        { text: "", value: "actions", sortable: false },
       ],
       users: [],
       editedIndex: -1,
       editedItem: {
-        userName: '',
-        email: '',
-        phone: '',
-        firstName: '',
-        lastName: '',
+        userName: "",
+        email: "",
+        phone: "",
+        firstName: "",
+        lastName: "",
       },
       defaultItem: {
-        userName: '',
-        email: '',
-        phone: '',
-        firstName: '',
-        lastName: '',
+        userName: "",
+        email: "",
+        phone: "",
+        firstName: "",
+        lastName: "",
       },
-      IP: "https://06a6-58-8-14-234.ngrok-free.app"
+      IP: "https://ef6d-171-7-48-85.ngrok-free.app"
     };
   },
   computed: {
     formTitle() {
-      return this.editedIndex === -1 ? 'Add User' : 'Edit User';
+      return this.editedIndex === -1 ? "Add User" : "Edit User";
     },
     activeUsers() {
-      return this.users.filter(user => user.RECORD_STATUS === 'active').length;
-    }
+      return this.users.filter((user) => user.RECORD_STATUS === "active")
+        .length;
+    },
+    filteredUsers() {
+      const searchLower = this.search.toLowerCase();
+      return this.users.filter((user) => {
+        return Object.keys(user).some((key) =>
+          user[key]
+            ? user[key].toString().toLowerCase().includes(searchLower)
+            : false
+        );
+      });
+    },
   },
   watch: {
     dialog(val) {
@@ -250,14 +273,14 @@ export default {
       }
     },
     formatDate(dateString) {
-      const options = { year: 'numeric', month: 'short', day: 'numeric' };
+      const options = { year: "numeric", month: "short", day: "numeric" };
       const date = new Date(dateString);
-      return date.toLocaleDateString('th-TH', options);
+      return date.toLocaleDateString("th-TH", options);
     },
     getStatusColor(status) {
-      if (status === 'active') return 'green';
-      if (status === 'inactive') return 'red';
-      return 'grey';
+      if (status === "active") return "green";
+      if (status === "inactive") return "red";
+      return "grey";
     },
     editItem(item) {
       this.editedIndex = this.users.indexOf(item);
@@ -266,7 +289,8 @@ export default {
     },
     deleteItem(item) {
       const index = this.users.indexOf(item);
-      confirm('คุณแน่ใจหรือไม่ว่าต้องการลบผู้ใช้นี้?') && this.users.splice(index, 1);
+      confirm("คุณแน่ใจหรือไม่ว่าต้องการลบผู้ใช้นี้?") &&
+        this.users.splice(index, 1);
     },
     close() {
       this.dialog = false;
@@ -289,33 +313,7 @@ export default {
     },
     navigateTo(route) {
       this.$router.push(route);
-    }
+    },
   },
 };
 </script>
-
-<style scoped>
-.v-data-table {
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.v-data-table >>> .v-data-table__wrapper > table > thead > tr > th {
-  font-size: 14px;
-  font-weight: bold;
-  background-color: #2c3e50;
-  color: white;
-  text-transform: uppercase;
-}
-
-.v-data-table >>> .v-data-table__wrapper > table > tbody > tr:hover {
-  background-color: #f0f8ff !important;
-}
-
-.v-card-title {
-  font-size: 24px;
-  font-weight: bold;
-  color: #2c3e50;
-}
-</style>

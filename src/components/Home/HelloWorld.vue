@@ -1,7 +1,7 @@
 <template>
   <v-container class="d-flex justify-center align-center fill-height">
     <v-slide-y-transition>
-      <v-card class="pa-5 elevation-10" max-width="400" color="grey lighten-5">
+      <v-card class="pa-5 elevation-10" max-width="400" elevation="3">
         <v-overlay :value="loading" :opacity="0.8">
           <v-progress-circular
             indeterminate
@@ -82,6 +82,7 @@
               block
               rounded
               elevation="3"
+              :loading="loading"
             >
               {{ isRegistering ? "Register" : "Login" }}
             </v-btn>
@@ -98,10 +99,10 @@
           </v-form>
 
           <div class="my-4 d-flex align-center">
-    <v-divider></v-divider>
-    <span class="mx-2 grey--text text--darken-1">OR</span>
-    <v-divider></v-divider>
-  </div>
+            <v-divider></v-divider>
+            <span class="mx-2 grey--text text--darken-1">OR</span>
+            <v-divider></v-divider>
+          </div>
 
           <v-btn
             @click="signInWithGoogle"
@@ -173,7 +174,7 @@ export default {
       isRegistering: false,
       packages: [],
       user: null,
-      IP: "https://06a6-58-8-14-234.ngrok-free.app",
+      IP: "https://ef6d-171-7-48-85.ngrok-free.app"
     };
   },
   methods: {
@@ -233,8 +234,11 @@ export default {
             },
           }
         );
+        console.log('status ',response.status)
+        console.log('data ',response.data)
+        console.log('user',response.data.user)
 
-        if (response.status === 200 && response.data && response.data.user) {
+        if (response.status === 200 && response.data && response.data.userName) {
           this.userData = response.data.user;
           const role = response.data.role;
           this.showSnackbar("Login successful.", "success");
@@ -243,7 +247,7 @@ export default {
           localStorage.setItem("user", JSON.stringify(this.userData));
 
           if (role === "admin") {
-            this.$router.push("/edit_admin");
+            this.$router.push("/edit_package");
           } else {
             this.$router.push("/PackageSelector");
           }
@@ -258,56 +262,53 @@ export default {
       }
     },
     async register() {
-      this.loading = true;
+  this.loading = true;
 
-      if (
-        !this.username ||
-        !this.password ||
-        !this.firstName ||
-        !this.lastName ||
-        !this.phone ||
-        !this.email
-      ) {
-        this.showSnackbar("Please fill in all required fields.", "error");
-        this.loading = false;
-        return;
+  if (
+    !this.username ||
+    !this.password ||
+    !this.firstName ||
+    !this.lastName ||
+    !this.phone ||
+    !this.email
+  ) {
+    this.showSnackbar("Please fill in all required fields.", "error");
+    this.loading = false;
+    return;
+  }
+
+  try {
+    const response = await axios.post(
+      this.IP + "/api/register",
+      {
+        userName: this.username,
+        passwd: this.password,
+        firstName: this.firstName,
+        lastName: this.lastName,
+        phone: this.phone,
+        email: this.email,
+      },
+      {
+        headers: {
+          "X-CSRFToken": getCsrfToken(),
+        },
       }
+    );
 
-      try {
-        const response = await axios.post(
-          this.IP + "/api/register",
-          {
-            userName: this.username,
-            passwd: this.password,
-            firstName: this.firstName,
-            lastName: this.lastName,
-            phone: this.phone,
-            email: this.email,
-          },
-          {
-            headers: {
-              "X-CSRFToken": getCsrfToken(),
-            },
-          }
-        );
-
-        if (response.status === 200 && response.data && response.data.user) {
-          this.userData = response.data.user;
-          this.showSnackbar("Registration successful.", "success");
-          this.fetchPackages();
-
-          localStorage.setItem("user", JSON.stringify(this.userData));
-          this.$router.push("/PackageSelector");
-        } else {
-          this.showSnackbar("Registration failed.", "error");
-        }
-      } catch (error) {
-        console.error(error);
-        this.showSnackbar("An error occurred during registration.", "error");
-      } finally {
-        this.loading = false;
-      }
-    },
+    if (response.data.status) {
+      this.showSnackbar(response.data.message, "success");
+      // ทำการล็อกอินหลังจากลงทะเบียนสำเร็จ
+      await this.login();
+    } else {
+      this.showSnackbar(response.data.message, "error");
+    }
+  } catch (error) {
+    console.error(error);
+    this.showSnackbar("An error occurred during registration.", "error");
+  } finally {
+    this.loading = false;
+  }
+},
     async fetchPackages() {
       try {
         const response = await axios.get(this.IP + "/package/get");
@@ -329,18 +330,11 @@ export default {
     toggleRegister() {
       this.isRegistering = !this.isRegistering;
     },
-    showSnackbar(message, color = "success") {
+    showSnackbar(message, color) {
       this.snackbarMessage = message;
       this.snackbarColor = color;
       this.snackbar = true;
     },
-  },
-  async mounted() {
-    const user = localStorage.getItem("user");
-    if (user) {
-      this.userData = JSON.parse(user);
-    }
-    this.fetchPackages();
   },
 };
 </script>

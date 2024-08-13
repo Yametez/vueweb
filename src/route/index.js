@@ -22,9 +22,9 @@ export default new Router({
       },
       {
         
-        path: '/edit_admin',
-        name: 'edit_admin',
-        component: home.edit_admin
+        path: '/edit_package',
+        name: 'edit_package',
+        component: home.edit_package
       },
       {
         path: '/edit_users',

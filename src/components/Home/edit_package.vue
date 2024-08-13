@@ -2,7 +2,7 @@
   <v-app>
     <v-navigation-drawer app v-model="drawer" class="primary darken-1">
       <v-list dense dark>
-        <v-list-item @click="navigateTo('/edit_admin')" link>
+        <v-list-item link>
           <v-list-item-icon>
             <v-icon>mdi-home</v-icon>
           </v-list-item-icon>
@@ -53,23 +53,19 @@
       </v-menu>
     </v-app-bar>
 
-    <v-main class="grey lighten-4">
+    <v-main class="grey lighten-5">
       <v-container>
         <v-row>
           <v-col cols="12">
-            <h1 class="display-1 font-weight-bold mb-4">PackageSelector (Preview)</h1>
-            <v-btn color="primary" @click="openEditForm" class="mb-4">
-              <v-icon left>mdi-pencil</v-icon>
-              แก้ไข
-            </v-btn>
+            <h1 class="display-1 font-weight-bold mb-4">Select to Edit For PackageSelector</h1>
           </v-col>
           <v-col cols="12" md="4" v-for="(pkg, index) in packages" :key="index">
-            <v-card elevation="2" class="mb-4">
+            <v-card elevation="2" class="mb-4" @click="editPackage(pkg)">
               <v-card-title class="headline">{{ pkg.name }}</v-card-title>
               <v-card-text>
                 <div v-for="(line, lineIndex) in getDescription(pkg.description)" :key="lineIndex" class="d-flex align-center mb-2">
-                  <v-icon class="custom-icon mr-2">{{ getIcon(pkg.description)[lineIndex] }}</v-icon>
-                  {{ line }}
+                  <v-icon class="custom-icon mr-2" color="primary">{{ line.icon }}</v-icon>
+                  {{ line.title }}
                 </div>
               </v-card-text>
             </v-card>
@@ -81,26 +77,48 @@
               <v-card-title class="headline">แก้ไขแพ็กเกจ</v-card-title>
               <v-card-text>
                 <v-form @submit.prevent="updatePackage">
-                  <v-select
-                    v-model="selectedPackage"
-                    :items="packages"
-                    item-text="name"
-                    item-value="name"
-                    label="เลือกแพ็กเกจที่ต้องการแก้ไข"
-                    @change="loadPackage"
-                    required
-                  ></v-select>
+                  
                   <v-text-field
                     v-model="editingPackage.name"
                     label="ชื่อแพ็กเกจ"
                     required
                   ></v-text-field>
-                  <v-textarea
-                    v-model="descriptionText"
-                    label="รายละเอียดแพ็กเกจ"
-                    hint="ถ้าขึ้นบรรทัดใหม่จะแสดงไอคอนในแต่ละบรรทัด"
-                    required
-                  ></v-textarea>
+                  <v-container>
+                    <v-row v-for="(line, lineIndex) in editingPackage.description" :key="lineIndex">
+                      <v-col cols="3">
+                        <v-select
+                          v-model="line.icon"
+                          :items="iconOptions"
+                          item-text="icon"
+                          item-value="icon"
+                          label="ไอคอน"
+                          required
+                        >
+                          <template v-slot:selection="data">
+                            <v-icon :class="data.item" color="primary">{{ data.item }}</v-icon>
+                          </template>
+                          <template v-slot:item="data">
+                            <v-list-item-content>
+                              <v-list-item-title>
+                                <v-icon :class="data.item">{{ data.item }}</v-icon>
+                              </v-list-item-title>
+                            </v-list-item-content>
+                          </template>
+                        </v-select>
+                      </v-col>
+                      <v-col cols="9">
+                        <v-text-field
+                          v-model="line.title"
+                          label="รายละเอียด"
+                          required
+                        ></v-text-field>
+                      </v-col>
+                      
+                    </v-row>
+                    <v-btn color="white" @click="addDescriptionLine">
+                      <v-icon>mdi-plus</v-icon>
+                    </v-btn>
+                  </v-container>
                   <v-btn type="submit" color="success" class="mr-4 mt-4">อัปเดต</v-btn>
                   <v-btn @click="cancelEdit" color="secondary" class="mt-4">ยกเลิก</v-btn>
                 </v-form>
@@ -110,6 +128,21 @@
         </v-row>
       </v-container>
     </v-main>
+    <transition name="alert" @before-enter="beforeEnter" @enter="enter" @leave="leave">
+      <v-alert
+        v-if="alert.visible"
+        :type="alert.type"
+        dense
+        border="left"
+        dismissible
+        elevation="2"
+        outlined
+        prominent
+        class="alert-bottom-right alert-left-border"
+      >
+        {{ alert.text }}
+      </v-alert>
+    </transition>
   </v-app>
 </template>
 
@@ -127,9 +160,14 @@ export default {
         name: "",
         description: []
       },
-      descriptionText: "",
+      iconOptions: ['mdi-check-circle', 'mdi-check-circle-outline'],
       drawer: false,
-      IP: "https://06a6-58-8-14-234.ngrok-free.app"
+      alert: {
+        visible: false,
+        text: '',
+        type: '' // 'success' or 'error'
+      },
+      IP: "https://ef6d-171-7-48-85.ngrok-free.app"
     };
   },
   mounted() {
@@ -148,21 +186,16 @@ export default {
     },
     getDescription(description) {
       try {
-        const descObj = JSON.parse(description);
-        return descObj.map(item => item.title);
+        return JSON.parse(description);
       } catch (error) {
         console.error("Error parsing description:", error);
-        return ["Description not available"];
+        return [{ title: "Description not available", icon: "mdi-alert" }];
       }
     },
-    getIcon(description) {
-      try {
-        const descObj = JSON.parse(description);
-        return descObj.map(item => item.icon);
-      } catch (error) {
-        console.error("Error parsing icon:", error);
-        return [];
-      }
+    editPackage(pkg) {
+      this.selectedPackage = pkg.name;
+      this.openEditForm();
+      this.loadPackage();
     },
     openEditForm() {
       this.showEditForm = true;
@@ -176,7 +209,6 @@ export default {
             name: pkg.name,
             description: JSON.parse(pkg.description)
           };
-          this.descriptionText = this.editingPackage.description.map(item => item.title).join('\n');
         } else {
           console.error("Selected package not found");
         }
@@ -187,20 +219,16 @@ export default {
         try {
           const index = this.packages.findIndex(pkg => pkg.name === this.selectedPackage);
           if (index !== -1) {
-            const updatedDescription = this.descriptionText.split('\n').map((title, i) => ({
-              title,
-              icon: this.editingPackage.description[i]?.icon || 'mdi-check-circle-outline'
-            }));
             const updatedPackage = {
               ...this.editingPackage,
-              description: JSON.stringify(updatedDescription)
+              description: JSON.stringify(this.editingPackage.description)
             };
-            
+
             const response = await axios.post(`${this.IP}/package/edit/${updatedPackage.id}`, updatedPackage);
-            
+
             if (response.status === 200) {
               this.$set(this.packages, index, updatedPackage);
-              
+
               this.showEditForm = false;
               this.selectedPackage = null;
               this.editingPackage = {
@@ -208,10 +236,10 @@ export default {
                 name: "",
                 description: []
               };
-              this.descriptionText = "";
-              
-              alert('อัปเดตแพ็กเกจสำเร็จ');
-              
+
+              // Show success alert
+              this.showAlert('อัปเดตแพ็กเกจสำเร็จ', 'success');
+
               await this.fetchPackages();
             } else {
               throw new Error('การอัปเดตล้มเหลว');
@@ -220,12 +248,38 @@ export default {
             throw new Error('ไม่พบแพ็กเกจที่เลือก');
           }
         } catch (error) {
-          console.error('เกิดข้อผิดพลาดในการอัปเดตแพ็กเกจ:', error.message);
-          alert(`เกิดข้อผิดพลาด: ${error.message}`);
+          console.error('Error updating package:', error.message);
+          this.showAlert('เกิดข้อผิดพลาดในการอัปเดตแพ็กเกจ', 'error');
         }
-      } else {
-        alert('กรุณาเลือกแพ็กเกจที่ต้องการแก้ไข');
       }
+    },
+    async deletePackage(pkg) {
+      const confirmed = confirm(`คุณต้องการลบแพ็กเกจ ${pkg.name} หรือไม่?`);
+      if (confirmed) {
+        try {
+          const response = await axios.post(`${this.IP}/package/delete/${pkg.id}`);
+          if (response.status === 200) {
+            this.packages = this.packages.filter(p => p.id !== pkg.id);
+            this.showAlert('ลบแพ็กเกจสำเร็จ', 'success');
+          } else {
+            throw new Error('การลบล้มเหลว');
+          }
+        } catch (error) {
+          console.error('Error deleting package:', error.message);
+          this.showAlert('เกิดข้อผิดพลาดในการลบแพ็กเกจ', 'error');
+        }
+      }
+    },
+    showAlert(text, type) {
+      this.alert.text = text;
+      this.alert.type = type;
+      this.alert.visible = true;
+      setTimeout(() => {
+        this.alert.visible = false;
+      }, 3000); // Hide alert after 3 seconds
+    },
+    addDescriptionLine() {
+      this.editingPackage.description.push({ icon: 'mdi-check-circle', title: '' });
     },
     cancelEdit() {
       this.showEditForm = false;
@@ -235,41 +289,54 @@ export default {
         name: "",
         description: []
       };
-      this.descriptionText = "";
     },
     navigateTo(route) {
       this.$router.push(route);
     },
-    signOut() {
-      localStorage.removeItem('userName');
-      this.$router.push('/');
+    async signOut() {
+      try {
+        await axios.post(`${this.IP}/api/logout`);
+        this.$router.push('/');
+      } catch (error) {
+        console.error('Error signing out:', error.message);
+      }
     }
   }
 };
 </script>
 
+
 <style scoped>
-.v-card {
-  transition: all 0.3s ease-in-out;
+.alert-bottom-right {
+  position: fixed;
+  bottom: 16px; /* Adjust to your preference */
+  right: 16px; /* Adjust to your preference */
+  z-index: 2000; /* Ensure it appears above other components */
 }
-.v-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+
+.alert-left-border {
+  border-left: 4px solid; /* Adjust color and width as needed */
 }
-.custom-icon {
-  color: #FFFFFF;
-  background-color: #1976D2;
-  border-radius: 50%;
-  padding: 2px;
+
+.fade-transition-enter-active,
+.fade-transition-leave-active {
+  transition: opacity 5s ease-in-out; /* Adjust transition duration here */
 }
-.v-app-bar {
-  backdrop-filter: blur(10px);
+
+.fade-transition-enter, .fade-transition-leave-to /* .fade-transition-leave-active in <2.1.8 */ {
+  opacity: 0;
 }
-.v-toolbar-title {
-  letter-spacing: 1px;
-  text-transform: uppercase;
+.alert-enter-active,
+.alert-leave-active {
+  transition: opacity 1s ease;
 }
-.v-navigation-drawer {
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
+
+.alert-enter, 
+.alert-leave-to /* .alert-leave-active in <2.1.8 */ {
+  opacity: 0;
+}
+
+.alert-left-border {
+  border-left: 4px solid #1976D2; /* Customize border color as needed */
 }
 </style>
